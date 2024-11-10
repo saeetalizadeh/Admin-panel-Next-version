@@ -1,115 +1,188 @@
-import Image from "next/image";
-import localFont from "next/font/local";
+import { getProducts } from "@/services/queries";
+import { useState, useEffect } from "react";
+import AddProductModal from "@/components/modals/AddProductModal";
+import EditProductModal from "@/components/modals/EditProductModal";
+import DeleteProductModal from "@/components/modals/DeleteProductModal";
+import { getCookie } from "@/utils/cookie";
+import { useRouter } from "next/router";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+function ProductsPage() {
+  const { push } = useRouter();
+  const token = getCookie("token");
+  const [add, setAdd] = useState(false);
+  const [deleteProductModal, setProductDeleteModal] = useState([false, null]);
+  const [edit, setEdit] = useState([false, ""]);
+  const [showMessage, setShowMessage] = useState("");
+  const [search, setSearch] = useState([]);
+  const { data, refetch } = getProducts();
 
-export default function Home() {
+  useEffect(() => {
+    if (!token) {
+      push("/login");
+    }
+  }, [token]);
+  const searchHandler = (e) => {
+    setShowMessage("");
+    const result = data.data.data.filter((item) =>
+      item.name.includes(e.target.value)
+    );
+    if (result.length > 0) {
+      setSearch(result);
+    } else {
+      setShowMessage("کالایی با این اسم پیدا نشد!");
+    }
+    console.log(result);
+  };
+
   return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <>
+      {add && <AddProductModal setAdd={setAdd} refetch={refetch} />}
+      {edit[0] && (
+        <EditProductModal setEdit={setEdit} edit={edit} refetch={refetch} />
+      )}
+      {deleteProductModal[0] && (
+        <DeleteProductModal
+          deleteProductModal={deleteProductModal}
+          setProductDeleteModal={setProductDeleteModal}
+          refetch={refetch}
         />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/pages/index.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+      )}
+      <div className="flex mx-auto relative justify-center items-center rounded-2xl w-[1145px] h-[68px] bg-[#ffffff]">
+        <span className="absolute right-5">
+          <img src="/search-normal.svg" className="size-6" alt="search icon" />
+        </span>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+        <input
+          onChange={searchHandler}
+          type="text"
+          placeholder="جستجوی کالا"
+          className="pr-14 w-full placeholder:text-[#00000099] bg-inherit outline-none"
+        />
+        <div className="flex border-r   border-[#E4E4E4] mr-5 px-5 gap-x-5">
+          <img src="/Manager.png" className="rounded-full" alt="" />
+          <div className="flex flex-col text-right w-[129px]">
+            <span className="text-[#282828]">میلاد عظمی</span>
+            <span className="text-[#282828] font-light">مدیر</span>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      </div>
+      <div className="flex justify-between w-[1140px] mt-11 mx-auto">
+        <span className="flex gap-x-2">
+          <img
+            src="/setting-3.svg"
+            className="size-8 mt-1.5"
+            alt="setting-icon"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          <span className="font-normal min-w-fit text-[24px] text-[#282828]">
+            مدیریت کالا
+          </span>
+        </span>
+        <button
+          onClick={() => {
+            setAdd(true);
+            document.body.style.overflow = "hidden";
+          }}
+          className="bg-[#55A3F0] rounded-xl text-[#ffffff] px-3 tracking-wider h-11 pb-1"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          افزودن محصول
+        </button>
+      </div>
+      <div className="w-[1140px] mx-auto mt-3">
+        <div className="grid myGrid14 px-10 w-full rounded-t-2xl h-[70px] items-center bg-[#F2F2F2]">
+          <span className="col-span-3 text-[#282828] font-medium text-[14px]">
+            نام کالا
+          </span>
+          <span className="col-span-3 text-[#282828] font-medium text-[14px]">
+            موجودی
+          </span>
+          <span className="col-span-3 text-[#282828] font-medium text-[14px]">
+            قیمت
+          </span>
+          <span className="col-span-5 text-[#282828] font-medium text-[14px]">
+            شناسه کالا
+          </span>
+        </div>
+        {data?.data.data.length ? (
+          search.length > 0 ? (
+            showMessage.length > 0 ? (
+              <div className="grid myGrid14 px-10 w-full h-[70px] items-center last:rounded-b-2xl bg-[#ffffff]">
+                <span className="col-span-full text-center">
+                  {" "}
+                  {showMessage}
+                </span>
+              </div>
+            ) : (
+              search.map((item) => (
+                <div
+                  key={item.id}
+                  className="grid myGrid14 px-10 w-full h-[70px] items-center last:rounded-b-2xl bg-[#ffffff]"
+                >
+                  <span className="col-span-3 text-[#282828] font-normal text-[12px]">
+                    {item.name}
+                  </span>
+                  <span className="col-span-3 text-[#282828] font-normal text-[12px]">
+                    {item.quantity}
+                  </span>
+                  <span className="col-span-3 text-[#282828] font-normal text-[12px]">
+                    {item.price}
+                  </span>
+                  <span className="col-span-3 text-[#282828] font-normal text-[12px]">
+                    {item.id}
+                  </span>
+                  <span className="col-span-2 flex text-[#282828] font-normal text-[12px] justify-end gap-x-4">
+                    <button onClick={() => setEdit([true, item.id])}>
+                      <img src="/edit.svg" alt="edit icon" />
+                    </button>
+                    <button
+                      onClick={() => setProductDeleteModal([true, item.id])}
+                    >
+                      <img src="/trash.svg" alt="delete icon" />
+                    </button>
+                  </span>
+                </div>
+              ))
+            )
+          ) : (
+            data?.data.data.map((item) => (
+              <div
+                key={item.id}
+                className="grid myGrid14 px-10 w-full h-[70px] items-center last:rounded-b-2xl bg-[#ffffff]"
+              >
+                <span className="col-span-3 text-[#282828] font-normal text-[12px]">
+                  {item.name}
+                </span>
+                <span className="col-span-3 text-[#282828] font-normal text-[12px]">
+                  {item.quantity}
+                </span>
+                <span className="col-span-3 text-[#282828] font-normal text-[12px]">
+                  {item.price}
+                </span>
+                <span className="col-span-3 text-[#282828] font-normal text-[12px]">
+                  {item.id}
+                </span>
+                <span className="col-span-2 flex text-[#282828] font-normal text-[12px] justify-end gap-x-4">
+                  <button onClick={() => setEdit([true, item.id])}>
+                    <img src="/edit.svg" alt="edit icon" />
+                  </button>
+                  <button
+                    onClick={() => setProductDeleteModal([true, item.id])}
+                  >
+                    <img src="/trash.svg" alt="delete icon" />
+                  </button>
+                </span>
+              </div>
+            ))
+          )
+        ) : (
+          <div className="grid myGrid14 px-10 w-full h-[70px] items-center last:rounded-b-2xl bg-[#ffffff]">
+            <span className="col-span-full text-center">
+              <h1>کالایی موجود نیست!</h1>
+            </span>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
+
+export default ProductsPage;
